@@ -1,11 +1,38 @@
-from langchain_core.callbacks import BaseCallbackHandler
+import utils
+import streamlit as st
+from streaming import StreamHandler
 
-class StreamHandler(BaseCallbackHandler):
+from langchain.chains import ConversationChain
+
+st.set_page_config(page_title="Chatbot", page_icon="💬")
+st.header('Basic Chatbot')
+
+class BasicChatbot:
+
+    def __init__(self):
+        utils.sync_st_session()
+        self.llm = utils.configure_llm()
     
-    def __init__(self, container, initial_text=""):
-        self.container = container
-        self.text = initial_text
+    def setup_chain(self):
+        chain = ConversationChain(llm=self.llm, verbose=False)
+        return chain
+    
+    @utils.enable_chat_history
+    def main(self):
+        chain = self.setup_chain()
+        user_query = st.chat_input(placeholder="Ask me anything!")
+        if user_query:
+            utils.display_msg(user_query, 'user')
+            with st.chat_message("assistant"):
+                st_cb = StreamHandler(st.empty())
+                result = chain.invoke(
+                    {"input":user_query},
+                    {"callbacks": [st_cb]}
+                )
+                response = result["response"]
+                st.session_state.messages.append({"role": "assistant", "content": response})
+                utils.print_qa(BasicChatbot, user_query, response)
 
-    def on_llm_new_token(self, token: str, **kwargs):
-        self.text += token
-        self.container.markdown(self.text)
+if __name__ == "__main__":
+    obj = BasicChatbot()
+    obj.main()
