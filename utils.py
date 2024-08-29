@@ -7,11 +7,6 @@ from langchain_community.embeddings.fastembed import FastEmbedEmbeddings
 
 logger = get_logger('Langchain-Chatbot')
 
-openai_api_key = "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"
-model = "gpt-4o-mini"
-llm = ChatOpenAI(model_name=model, temperature=0, streaming=True, api_key=openai_api_key)
-
-
 #decorator
 def enable_chat_history(func):
     if "messages" not in st.session_state:
@@ -67,4 +62,3 @@ def configure_embedding_model():
 def sync_st_session():
     for k, v in st.session_state.items():
         st.session_state[k] = v
-        st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
